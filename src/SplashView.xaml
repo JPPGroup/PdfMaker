@@ -1,0 +1,16 @@
+﻿<Window x:Class="PdfMaker.SplashView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PdfMaker"
+        mc:Ignorable="d"
+        Title="SplashView" Height="50" Width="400" ShowInTaskbar="False" WindowStyle="None" BorderThickness="0" WindowStartupLocation="CenterOwner">
+    <Grid>
+        <TextBox HorizontalAlignment="Stretch"
+                 HorizontalContentAlignment="Center" 
+                 VerticalAlignment="Stretch"
+                 VerticalContentAlignment="Center" 
+                 Text="{Binding ProgressText}" BorderThickness="0"/>
+    </Grid>
+</Window>
