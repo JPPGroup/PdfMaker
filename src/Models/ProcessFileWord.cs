@@ -1,11 +1,12 @@
-﻿using System;
-using System.Linq;
-using Microsoft.Office.Interop.Word;
+﻿using Microsoft.Office.Interop.Word;
 using PdfMaker.Helpers;
+using System;
+using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace PdfMaker.Models
 {
-    internal class ProcessFileWord : ProcessFile
+    internal class ProcessFileWord : ProcessFileBase
     {
         public ProcessFileWord(string filePath) : base(filePath, FileTypes.Word) { }
 
@@ -19,14 +20,13 @@ namespace PdfMaker.Models
         {
             ApplicationClass wordApplication = null;
             Document wordDocument = null;
+            
             object paramSourceDocPath = FullPath;
             var paramMissing = Type.Missing;
 
-            var paramExportFilePath = TempFileHelper.GetPdfFileName();
-
             try
             {
-
+                var paramExportFilePath = TempFileHelper.GetPdfFileName();
                 wordApplication = new ApplicationClass();
 
                 wordDocument = wordApplication.Documents.Open(
@@ -38,53 +38,51 @@ namespace PdfMaker.Models
                     ref paramMissing);
 
                 wordDocument?.ExportAsFixedFormat(paramExportFilePath,
-                    PARAM_EXPORT_FORMAT, PARAM_OPEN_AFTER_EXPORT,
-                    PARAM_EXPORT_OPTIMIZE_FOR, PARAM_EXPORT_RANGE, PARAM_START_PAGE,
-                    PARAM_END_PAGE, PARAM_EXPORT_ITEM, PARAM_INCLUDE_DOC_PROPS,
-                    PARAM_KEEP_IRM, PARAM_CREATE_BOOKMARKS, PARAM_DOC_STRUCTURE_TAGS,
-                    PARAM_BITMAP_MISSING_FONTS, PARAM_USE_ISO19005_1,
+                    EXPORT_FORMAT, OPEN_AFTER_EXPORT,
+                    EXPORT_OPTIMIZE_FOR, EXPORT_RANGE, START_PAGE,
+                    END_PAGE, EXPORT_ITEM, INCLUDE_DOC_PROPS,
+                    KEEP_IRM, CREATE_BOOKMARKS, DOC_STRUCTURE_TAGS,
+                    BITMAP_MISSING_FONTS, USE_ISO19005_1,
                     ref paramMissing);
 
                 PdfFile = paramExportFilePath;
                 CleanUp = true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                // Respond to the error
+                //TODO : Log error
             }
             finally
             {
                 if (wordDocument != null)
                 {
                     wordDocument.Close(false);
-                    wordDocument = null;
+                    Marshal.ReleaseComObject(wordDocument);
                 }
 
                 if (wordApplication != null)
                 {
                     wordApplication.Quit(false);
-                    wordApplication = null;
+                    Marshal.ReleaseComObject(wordApplication);
                 }
 
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
             }
         }
 
-        private const WdExportFormat PARAM_EXPORT_FORMAT = WdExportFormat.wdExportFormatPDF;
-        private const bool PARAM_OPEN_AFTER_EXPORT = false;
-        private const WdExportOptimizeFor PARAM_EXPORT_OPTIMIZE_FOR = WdExportOptimizeFor.wdExportOptimizeForPrint;
-        private const WdExportRange PARAM_EXPORT_RANGE = WdExportRange.wdExportAllDocument;
-        private const int PARAM_START_PAGE = 0;
-        private const int PARAM_END_PAGE = 0;
-        private const WdExportItem PARAM_EXPORT_ITEM = WdExportItem.wdExportDocumentContent;
-        private const bool PARAM_INCLUDE_DOC_PROPS = true;
-        private const bool PARAM_KEEP_IRM = true;
-        private const WdExportCreateBookmarks PARAM_CREATE_BOOKMARKS = WdExportCreateBookmarks.wdExportCreateWordBookmarks;
-        private const bool PARAM_DOC_STRUCTURE_TAGS = true;
-        private const bool PARAM_BITMAP_MISSING_FONTS = true;
-        private const bool PARAM_USE_ISO19005_1 = false;
+        private const WdExportFormat EXPORT_FORMAT = WdExportFormat.wdExportFormatPDF;
+        private const bool OPEN_AFTER_EXPORT = false;
+        private const WdExportOptimizeFor EXPORT_OPTIMIZE_FOR = WdExportOptimizeFor.wdExportOptimizeForPrint;
+        private const WdExportRange EXPORT_RANGE = WdExportRange.wdExportAllDocument;
+        private const int START_PAGE = 0;
+        private const int END_PAGE = 0;
+        private const WdExportItem EXPORT_ITEM = WdExportItem.wdExportDocumentContent;
+        private const bool INCLUDE_DOC_PROPS = true;
+        private const bool KEEP_IRM = true;
+        private const WdExportCreateBookmarks CREATE_BOOKMARKS = WdExportCreateBookmarks.wdExportCreateWordBookmarks;
+        private const bool DOC_STRUCTURE_TAGS = true;
+        private const bool BITMAP_MISSING_FONTS = true;
+        private const bool USE_ISO19005_1 = false;
     }
 }

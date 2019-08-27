@@ -1,13 +1,13 @@
-﻿using System;
+﻿using Jpp.Common;
+using PdfMaker.Helpers;
+using System;
 using System.IO;
 using System.Linq;
 using System.Windows;
-using Jpp.Common;
-using PdfMaker.Helpers;
 
 namespace PdfMaker.Models
 {
-    internal abstract class ProcessFile : BaseNotify
+    internal abstract class ProcessFileBase : BaseNotify
     {
         private bool _isSplit;
         private int _startPage;
@@ -40,7 +40,6 @@ namespace PdfMaker.Models
             set
             {
                 SetField(ref _startPage, value, nameof(StartPage));
-
                 OnPropertyChanged(nameof(DisplayPage));
             }
         }
@@ -50,12 +49,11 @@ namespace PdfMaker.Models
             set
             {
                 SetField(ref _endPage, value, nameof(EndPage));
-
                 OnPropertyChanged(nameof(DisplayPage));
             }
         }
 
-        protected ProcessFile(string filePath, FileTypes type)
+        protected ProcessFileBase(string filePath, FileTypes type)
         {
             if (!File.Exists(filePath)) throw new ArgumentException(nameof(filePath));
 
@@ -67,9 +65,9 @@ namespace PdfMaker.Models
             CleanUp = false;
         }
 
-        public static ProcessFile Create(string filePath)
+        public static ProcessFileBase Create(string filePath)
         {
-            var objects = ReflectiveEnumerator.GetEnumerableOfType<ProcessFile>(filePath);
+            var objects = ReflectiveEnumerator.GetEnumerableOfType<ProcessFileBase>(filePath);
 
             return objects.FirstOrDefault(obj => obj.IsValid());
         }

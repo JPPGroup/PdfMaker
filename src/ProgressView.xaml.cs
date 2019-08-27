@@ -15,14 +15,14 @@ using System.Windows.Shapes;
 namespace PdfMaker
 {
     /// <summary>
-    /// Interaction logic for SplashView.xaml
+    /// Interaction logic for ProgressView.xaml
     /// </summary>
-    public partial class SplashView : Window
+    public partial class ProgressView : Window
     {
-        public SplashView()
+        public ProgressView()
         {
             InitializeComponent();
-            DataContext = new SplashViewModel(this);
+            DataContext = new ProgressViewModel(this);
         }
     }
 }

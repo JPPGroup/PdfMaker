@@ -2,7 +2,7 @@
 
 namespace PdfMaker.Models
 {
-    internal class ProcessFilePdf : ProcessFile
+    internal class ProcessFilePdf : ProcessFileBase
     {
         public ProcessFilePdf(string filePath) : base(filePath, FileTypes.Pdf) { }
 

@@ -1,16 +1,16 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using PdfSharp.Pdf;
+﻿using PdfSharp.Pdf;
 using PdfSharp.Pdf.IO;
+using System.Collections.Generic;
+using System.IO;
 
 namespace PdfMaker.Models
 {
     internal class PdfMerge
     {
         private const string FILE_NAME = "MergedDocument.pdf";
-        public List<ProcessFile> Files { get; }
+        public List<ProcessFileBase> Files { get; }
 
-        public PdfMerge(List<ProcessFile> files)
+        public PdfMerge(List<ProcessFileBase> files)
         {
             Files = files;
         }
@@ -37,7 +37,7 @@ namespace PdfMaker.Models
             outputDocument.Save(Path.Combine(folder, FILE_NAME));
         }
 
-        private static int GetEndIndex(PdfDocument inputDocument, ProcessFile file)
+        private static int GetEndIndex(PdfDocument inputDocument, ProcessFileBase file)
         {
             if(!file.IsSplit || file.EndPage > inputDocument.PageCount || file.EndPage <= 0) return inputDocument.PageCount - 1;
             if (file.EndPage < file.StartPage) return file.StartPage - 1;
@@ -45,7 +45,7 @@ namespace PdfMaker.Models
             return file.EndPage -1;
         }
 
-        private static int GetStartIndex(PdfDocument inputDocument, ProcessFile file)
+        private static int GetStartIndex(PdfDocument inputDocument, ProcessFileBase file)
         {
             if (!file.IsSplit || file.StartPage <= 0) return 0;
             if (file.StartPage >= inputDocument.PageCount) return inputDocument.PageCount - 1;

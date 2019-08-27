@@ -1,6 +1,6 @@
-﻿using System.Windows;
+﻿using Jpp.Common;
+using System.Windows;
 using System.Windows.Input;
-using Jpp.Common;
 
 namespace PdfMaker
 {

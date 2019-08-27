@@ -3,7 +3,7 @@ using Jpp.Common;
 
 namespace PdfMaker
 {
-    internal class SplashViewModel : BaseNotify
+    internal class ProgressViewModel : BaseNotify
     {
         private readonly Window _view;
         private string _progressText = string.Empty;
@@ -14,7 +14,7 @@ namespace PdfMaker
             set => SetField(ref _progressText, value, nameof(ProgressText));
         }
 
-        public SplashViewModel(Window view)
+        public ProgressViewModel(Window view)
         {
             _view = view;
         }

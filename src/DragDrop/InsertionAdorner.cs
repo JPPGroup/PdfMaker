@@ -33,27 +33,23 @@ namespace PdfMaker.DragDrop
             Triangle.Freeze();
         }
 
-        public InsertionAdorner(bool isSeparatorHorizontal, bool isInFirstHalf, UIElement adornedElement, AdornerLayer adornerLayer)
-            : base(adornedElement)
+        public InsertionAdorner(bool isSeparatorHorizontal, bool isInFirstHalf, UIElement adornedElement, AdornerLayer adornerLayer) : base(adornedElement)
         {
-            this._isSeparatorHorizontal = isSeparatorHorizontal;
-            this.IsInFirstHalf = isInFirstHalf;
-            this._adornerLayer = adornerLayer;
-            this.IsHitTestVisible = false;
+            _isSeparatorHorizontal = isSeparatorHorizontal;
+            IsInFirstHalf = isInFirstHalf;
+            _adornerLayer = adornerLayer;
+            IsHitTestVisible = false;
 
-            this._adornerLayer.Add(this);
+            _adornerLayer.Add(this);
         }
 
         // This draws one line and two triangles at each end of the line.
         protected override void OnRender(DrawingContext drawingContext)
         {
-            Point startPoint;
-            Point endPoint;
-
-            CalculateStartAndEndPoint(out startPoint, out endPoint);
+            CalculateStartAndEndPoint(out var startPoint, out var endPoint);
             drawingContext.DrawLine(Pen, startPoint, endPoint);
 
-            if (this._isSeparatorHorizontal)
+            if (_isSeparatorHorizontal)
             {
                 DrawTriangle(drawingContext, startPoint, 0);
                 DrawTriangle(drawingContext, endPoint, 180);
@@ -65,7 +61,7 @@ namespace PdfMaker.DragDrop
             }
         }
 
-        private void DrawTriangle(DrawingContext drawingContext, Point origin, double angle)
+        private static void DrawTriangle(DrawingContext drawingContext, Point origin, double angle)
         {
             drawingContext.PushTransform(new TranslateTransform(origin.X, origin.Y));
             drawingContext.PushTransform(new RotateTransform(angle));
@@ -81,32 +77,30 @@ namespace PdfMaker.DragDrop
             startPoint = new Point();
             endPoint = new Point();
 
-            double width = this.AdornedElement.RenderSize.Width;
-            double height = this.AdornedElement.RenderSize.Height;
+            var width = AdornedElement.RenderSize.Width;
+            var height = AdornedElement.RenderSize.Height;
 
-            if (this._isSeparatorHorizontal)
+            if (_isSeparatorHorizontal)
             {
                 endPoint.X = width;
-                if (!this.IsInFirstHalf)
-                {
-                    startPoint.Y = height;
-                    endPoint.Y = height;
-                }
+                if (IsInFirstHalf) return;
+
+                startPoint.Y = height;
+                endPoint.Y = height;
             }
             else
             {
                 endPoint.Y = height;
-                if (!this.IsInFirstHalf)
-                {
-                    startPoint.X = width;
-                    endPoint.X = width;
-                }
+                if (IsInFirstHalf) return;
+
+                startPoint.X = width;
+                endPoint.X = width;
             }
         }
 
         public void Detach()
         {
-            this._adornerLayer.Remove(this);
+            _adornerLayer.Remove(this);
         }
     }
 }

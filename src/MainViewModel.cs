@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections;
-using Jpp.Common;
+﻿using Jpp.Common;
 using PdfMaker.Models;
+using System;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -17,8 +15,8 @@ namespace PdfMaker
     {
         private readonly Window _view;
         private string _selectedFolder = string.Empty;
-        private ObservableCollection<ProcessFile> _filesCollection = new ObservableCollection<ProcessFile>();
-        private ObservableCollection<ProcessFile> _toCreateCollection = new ObservableCollection<ProcessFile>();
+        private ObservableCollection<ProcessFileBase> _filesCollection = new ObservableCollection<ProcessFileBase>();
+        private ObservableCollection<ProcessFileBase> _toCreateCollection = new ObservableCollection<ProcessFileBase>();
         private ICommand _selectFolderCommand;
         private ICommand _resetCommand;
         private ICommand _okCommand;
@@ -33,12 +31,12 @@ namespace PdfMaker
                 ReadFilesFromPath();
             } 
         }
-        public ObservableCollection<ProcessFile> FilesCollection
+        public ObservableCollection<ProcessFileBase> FilesCollection
         {
             get => _filesCollection;
             set => SetField(ref _filesCollection, value, nameof(FilesCollection));
         }
-        public ObservableCollection<ProcessFile> ToCreateCollection
+        public ObservableCollection<ProcessFileBase> ToCreateCollection
         {
             get => _toCreateCollection;
             set => SetField(ref _toCreateCollection, value, nameof(ToCreateCollection));
@@ -46,14 +44,14 @@ namespace PdfMaker
         public ICommand SelectFolderCommand => _selectFolderCommand ?? (_selectFolderCommand = new DelegateCommand(DoFolderSelect));
         public ICommand ResetCommand => _resetCommand ?? (_resetCommand = new DelegateCommand(DoReset));
         public ICommand OkCommand => _okCommand ?? (_okCommand = new DelegateCommand(DoOk));
-        public ICommand SplitCommand =>_splitCommand ??(_splitCommand = new DelegateCommand<ProcessFile>(DoSplit));
+        public ICommand SplitCommand =>_splitCommand ??(_splitCommand = new DelegateCommand<ProcessFileBase>(DoSplit));
         
         public MainViewModel(Window view)
         {
             _view = view;
         }
 
-        private void DoSplit(ProcessFile item)
+        private void DoSplit(ProcessFileBase item)
         {
             var split = new SplitDocumentView { Owner = _view };
             split.ShowDialog();
@@ -61,7 +59,7 @@ namespace PdfMaker
             var context = (SplitDocumentViewModel)split.DataContext;
             if (!context.ShouldSplit) return;
 
-            var newItem = ProcessFile.Create(item.FullPath);
+            var newItem = ProcessFileBase.Create(item.FullPath);
             if (newItem == null) throw new ArgumentException(nameof(item));
 
             item.IsSplit = true;
@@ -76,10 +74,7 @@ namespace PdfMaker
         private void DoFolderSelect()
         {
             var dialog = new FolderBrowserDialog();
-            if (dialog.ShowDialog() == DialogResult.OK)
-            {
-                SelectedFolder = dialog.SelectedPath;
-            }
+            if (dialog.ShowDialog() == DialogResult.OK) SelectedFolder = dialog.SelectedPath;
         }
 
         private void DoReset()
@@ -91,19 +86,38 @@ namespace PdfMaker
         {
             if (ToCreateCollection.Count < 1) return;
 
-            DoOkWithModal(progress =>
+            DoWorkWithModal(DoWork);
+        }
+
+        private void DoWorkWithModal(Action<IProgress<string>> work)
+        {
+            var view = new ProgressView { Owner = _view };
+
+            view.Loaded += (_, args) =>
             {
-                foreach (var processFile in ToCreateCollection)
-                {
-                    progress.Report($"Processing {processFile.FileName}");
-                    processFile.ExportToPdf();
-                }
+                var worker = new BackgroundWorker();
+                var progress = new Progress<string>(data => ((ProgressViewModel)view.DataContext).ProgressText = data);
 
-                progress.Report("Merging documents to PDF");
+                worker.DoWork += (s, workerArgs) => work(progress);
+                worker.RunWorkerCompleted += (s, workerArgs) => view.Close();
+                worker.RunWorkerAsync();
+            };
 
-                var merger = new PdfMerge(ToCreateCollection.ToList());
-                merger.Merge(SelectedFolder);
-            });
+            view.ShowDialog();
+        }
+
+        private void DoWork(IProgress<string> progress)
+        {
+            foreach (var processFile in ToCreateCollection)
+            {
+                progress?.Report($"Processing {processFile.FileName}");
+                processFile.ExportToPdf();
+            }
+
+            progress?.Report("Merging documents to PDF");
+
+            var merger = new PdfMerge(ToCreateCollection.ToList());
+            merger.Merge(SelectedFolder);
         }
 
         private void ReadFilesFromPath()
@@ -117,26 +131,9 @@ namespace PdfMaker
 
             foreach (var file in filePaths)
             {
-                var procFile = ProcessFile.Create(file);
+                var procFile = ProcessFileBase.Create(file);
                 if (procFile != null) FilesCollection.Add(procFile);
             }
-        }
-
-        private void DoOkWithModal(Action<IProgress<string>> work)
-        {
-            var splash = new SplashView { Owner = _view };
-
-            splash.Loaded += (_, args) =>
-            {
-                var worker = new BackgroundWorker();
-                var progress = new Progress<string>( data => ((SplashViewModel) splash.DataContext).ProgressText = data);
-
-                worker.DoWork += (s, workerArgs) => work(progress);
-                worker.RunWorkerCompleted += (s, workerArgs) => splash.Close();
-                worker.RunWorkerAsync();
-            };
-
-            splash.ShowDialog();
         }
     }
 }

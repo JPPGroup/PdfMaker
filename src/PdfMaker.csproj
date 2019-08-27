@@ -97,10 +97,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="SplashView.xaml.cs">
-      <DependentUpon>SplashView.xaml</DependentUpon>
+    <Compile Include="ProgressView.xaml.cs">
+      <DependentUpon>ProgressView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="SplashViewModel.cs" />
+    <Compile Include="ProgressViewModel.cs" />
     <Compile Include="SplitDocumentView.xaml.cs">
       <DependentUpon>SplitDocumentView.xaml</DependentUpon>
     </Compile>
@@ -122,7 +122,7 @@
       <DependentUpon>MainView.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="SplashView.xaml">
+    <Page Include="ProgressView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -137,7 +137,7 @@
     <Compile Include="Models\ProcessFilePdf.cs" />
     <Compile Include="Models\ProcessFileExcel.cs" />
     <Compile Include="Models\ProcessFileWord.cs" />
-    <Compile Include="Models\ProcessFile.cs" />
+    <Compile Include="Models\ProcessFileBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>

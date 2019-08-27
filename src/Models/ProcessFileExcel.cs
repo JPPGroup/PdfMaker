@@ -1,11 +1,12 @@
-﻿using System;
-using System.Linq;
-using Microsoft.Office.Interop.Excel;
+﻿using Microsoft.Office.Interop.Excel;
 using PdfMaker.Helpers;
+using System;
+using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace PdfMaker.Models
 {
-    internal class ProcessFileExcel : ProcessFile
+    internal class ProcessFileExcel : ProcessFileBase
     {
         public ProcessFileExcel(string filePath) : base(filePath, FileTypes.Excel) { }
 
@@ -19,21 +20,22 @@ namespace PdfMaker.Models
         {
             ApplicationClass excelApplication = null;
             Workbook excelDocument = null;
-            string paramExportFilePath = TempFileHelper.GetPdfFileName();
+            var paramExportFilePath = TempFileHelper.GetPdfFileName();
 
             try
             {
                 excelApplication = new ApplicationClass();
 
                 excelDocument = excelApplication.Workbooks.Open(FullPath);
+                
                 excelDocument?.ExportAsFixedFormat(XlFixedFormatType.xlTypePDF, paramExportFilePath);
 
                 PdfFile = paramExportFilePath;
                 CleanUp = true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                // Respond to the error
+                //TODO : Log error
             }
             finally
             {
@@ -41,17 +43,15 @@ namespace PdfMaker.Models
                 if (excelDocument != null)
                 {
                     excelDocument.Close(false);
-                    excelDocument = null;
+                    Marshal.ReleaseComObject(excelDocument);
                 }
 
                 if (excelApplication != null)
                 {
                     excelApplication.Quit();
-                    excelApplication = null;
+                    Marshal.ReleaseComObject(excelApplication);
                 }
 
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
             }
