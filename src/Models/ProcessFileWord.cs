@@ -13,7 +13,7 @@ namespace PdfMaker.Models
         public override bool IsValid()
         {
             var validExtensions = new[] { ".doc", ".docx" };
-            return validExtensions.Contains(FileExtension);
+            return validExtensions.Contains(FileExtension.ToLower());
         }
 
         public override void ExportToPdf()

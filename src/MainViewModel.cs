@@ -41,10 +41,10 @@ namespace PdfMaker
             get => _toCreateCollection;
             set => SetField(ref _toCreateCollection, value, nameof(ToCreateCollection));
         }
-        public ICommand SelectFolderCommand => _selectFolderCommand ?? (_selectFolderCommand = new DelegateCommand(DoFolderSelect));
-        public ICommand ResetCommand => _resetCommand ?? (_resetCommand = new DelegateCommand(DoReset));
-        public ICommand OkCommand => _okCommand ?? (_okCommand = new DelegateCommand(DoOk));
-        public ICommand SplitCommand =>_splitCommand ??(_splitCommand = new DelegateCommand<ProcessFileBase>(DoSplit));
+        public ICommand SelectFolderCommand => _selectFolderCommand ??= new DelegateCommand(DoFolderSelect);
+        public ICommand ResetCommand => _resetCommand ??= new DelegateCommand(DoReset);
+        public ICommand OkCommand => _okCommand ??= new DelegateCommand(DoOk);
+        public ICommand SplitCommand =>_splitCommand ??= new DelegateCommand<ProcessFileBase>(DoSplit);
         
         public MainViewModel(Window view)
         {
@@ -73,7 +73,7 @@ namespace PdfMaker
 
         private void DoFolderSelect()
         {
-            var dialog = new FolderBrowserDialog();
+            using var dialog = new FolderBrowserDialog();
             if (dialog.ShowDialog() == DialogResult.OK) SelectedFolder = dialog.SelectedPath;
         }
 

@@ -12,8 +12,8 @@ namespace PdfMaker
         private ICommand _okCommand;
         private ICommand _cancelCommand;
 
-        public ICommand OkCommand => _okCommand ?? (_okCommand = new DelegateCommand(DoOk));
-        public ICommand CancelCommand => _cancelCommand ?? (_cancelCommand = new DelegateCommand(DoCancel));
+        public ICommand OkCommand => _okCommand ??= new DelegateCommand(DoOk);
+        public ICommand CancelCommand => _cancelCommand ??= new DelegateCommand(DoCancel);
         public int PageNumber
         {
             get => _pageNumber;

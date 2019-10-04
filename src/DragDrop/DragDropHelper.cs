@@ -31,7 +31,7 @@ namespace PdfMaker.DragDrop
 
         // singleton
         private static DragDropHelper _instance;
-        private static DragDropHelper Instance => _instance ?? (_instance = new DragDropHelper());
+        private static DragDropHelper Instance => _instance ??= new DragDropHelper();
 
         public static bool GetIsDragSource(DependencyObject obj)
         {
@@ -119,12 +119,11 @@ namespace PdfMaker.DragDrop
         private void DragSource_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             _sourceItemsControl = (ItemsControl)sender;
-            var visual = e.OriginalSource as Visual;
 
             _topWindow = Window.GetWindow(_sourceItemsControl);
             _initialMousePosition = e.GetPosition(_topWindow);
 
-            if (visual != null) _sourceItemContainer = _sourceItemsControl.ContainerFromElement(visual) as FrameworkElement;
+            if (e.OriginalSource is Visual visual) _sourceItemContainer = _sourceItemsControl.ContainerFromElement(visual) as FrameworkElement;
             if (_sourceItemContainer != null) _draggedData = _sourceItemContainer.DataContext;
         }
 
@@ -414,16 +413,15 @@ namespace PdfMaker.DragDrop
             var hasVerticalOrientation = true;
 
             var panel = VisualTreeHelper.GetParent(itemContainer) as Panel;
-            StackPanel stackPanel;
-            WrapPanel wrapPanel;
 
-            if ((stackPanel = panel as StackPanel) != null)
+            switch (panel)
             {
-                hasVerticalOrientation = stackPanel.Orientation == Orientation.Vertical;
-            }
-            else if ((wrapPanel = panel as WrapPanel) != null)
-            {
-                hasVerticalOrientation = wrapPanel.Orientation == Orientation.Vertical;
+                case StackPanel stackPanel:
+                    hasVerticalOrientation = stackPanel.Orientation == Orientation.Vertical;
+                    break;
+                case WrapPanel wrapPanel:
+                    hasVerticalOrientation = wrapPanel.Orientation == Orientation.Vertical;
+                    break;
             }
             // You can add support for more panel types here.
             return hasVerticalOrientation;
@@ -435,22 +433,31 @@ namespace PdfMaker.DragDrop
 
             var itemsSource = itemsControl.ItemsSource;
 
-            if (itemsSource == null)
+            switch (itemsSource)
             {
-                if (!itemsControl.Items.Contains(itemToInsert)) itemsControl.Items.Insert(insertionIndex, itemToInsert);
-            }
-            // Is the ItemsSource IList or IList<T>? If so, insert the dragged item in the list.
-            else if (itemsSource is IList)
-            {
-                if (!((IList)itemsSource).Contains(itemToInsert)) ((IList)itemsSource).Insert(insertionIndex, itemToInsert);
-            }
-            else
-            {
-                var type = itemsSource.GetType();
-                var genericIListType = type.GetInterface("IList`1");
-                if (genericIListType != null)
+                // Is the ItemsSource IList or IList<T>? If so, insert the dragged item in the list.
+                case null:
                 {
-                    type.GetMethod("Insert")?.Invoke(itemsSource, new[] { insertionIndex, itemToInsert });
+                    if (!itemsControl.Items.Contains(itemToInsert)) itemsControl.Items.Insert(insertionIndex, itemToInsert);
+                    break;
+                }
+
+                case IList list:
+                {
+                    if (!list.Contains(itemToInsert)) list.Insert(insertionIndex, itemToInsert);
+                    break;
+                }
+
+                default:
+                {
+                    var type = itemsSource.GetType();
+                    var genericIListType = type.GetInterface("IList`1");
+                    if (genericIListType != null)
+                    {
+                        type.GetMethod("Insert")?.Invoke(itemsSource, new[] { insertionIndex, itemToInsert });
+                    }
+
+                    break;
                 }
             }
         }
@@ -465,23 +472,32 @@ namespace PdfMaker.DragDrop
             if (indexToBeRemoved == -1) return indexToBeRemoved;
 
             var itemsSource = itemsControl.ItemsSource;
-            if (itemsSource == null)
+            switch (itemsSource)
             {
-                if (indexToBeRemoved >= 0 && indexToBeRemoved < itemsControl.Items.Count) itemsControl.Items.RemoveAt(indexToBeRemoved);
-            }
-            // Is the ItemsSource IList or IList<T>? If so, remove the item from the list.
-            else if (itemsSource is IList)
-            {
-                var list = (IList)itemsSource;
-                if (indexToBeRemoved >= 0 && indexToBeRemoved < list.Count) list.RemoveAt(indexToBeRemoved);
-            }
-            else
-            {
-                var type = itemsSource.GetType();
-                var genericIListType = type.GetInterface("IList`1");
-                if (genericIListType != null)
+                // Is the ItemsSource IList or IList<T>? If so, remove the item from the list.
+                case null:
                 {
-                    type.GetMethod("RemoveAt")?.Invoke(itemsSource, new object[] { indexToBeRemoved });
+                    if (indexToBeRemoved >= 0 && indexToBeRemoved < itemsControl.Items.Count) itemsControl.Items.RemoveAt(indexToBeRemoved);
+                    break;
+                }
+
+                case IList source:
+                {
+                    var list = source;
+                    if (indexToBeRemoved >= 0 && indexToBeRemoved < list.Count) list.RemoveAt(indexToBeRemoved);
+                    break;
+                }
+
+                default:
+                {
+                    var type = itemsSource.GetType();
+                    var genericIListType = type.GetInterface("IList`1");
+                    if (genericIListType != null)
+                    {
+                        type.GetMethod("RemoveAt")?.Invoke(itemsSource, new object[] { indexToBeRemoved });
+                    }
+
+                    break;
                 }
             }
             return indexToBeRemoved;

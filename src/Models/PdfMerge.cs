@@ -22,7 +22,7 @@ namespace PdfMaker.Models
             {
                 if (!File.Exists(file.PdfFile)) continue;
 
-                var inputDocument = PdfReader.Open(file.PdfFile, PdfDocumentOpenMode.Import);
+                using var inputDocument = PdfReader.Open(file.PdfFile, PdfDocumentOpenMode.Import);
                 var start = GetStartIndex(inputDocument, file);
                 var end = GetEndIndex(inputDocument, file);
 
